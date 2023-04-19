@@ -7,7 +7,7 @@ from game import Game  # Import the Game class from the game module.
 
 def start_server(port):
 
-    server = socket.gethostname()  # Define server IP address and port number.
+    server = ""  # Define server IP address and port number.
     ip_address = socket.gethostbyname(server)
     print("hostname", server)
     print("ip_address", ip_address)
