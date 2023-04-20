@@ -99,3 +99,6 @@ def start_server(port):
         # Start a new thread for each incoming connection, passing the connection
         # object, player number, and game ID to the threaded_client function.
         start_new_thread(threaded_client, (conn, p, gameId))
+
+
+start_server(5131)

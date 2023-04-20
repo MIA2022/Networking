@@ -165,3 +165,6 @@ def start_client(host, port):
     # ensures that the menu screen is displayed again after the game ends.
     while True:
         menu_screen()
+
+
+start_client("45.79.193.175", 5131)
