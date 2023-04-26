@@ -1,0 +1,23 @@
+#!/bin/bash
+
+#Script to execute the tcl script and the python code for every TCP Variant and queue type
+echo "Reno/RED"
+/course/cs4700f12/ns-allinone-2.35/ns-2.35/ns experiment3.tcl Reno RED
+./analyzeData
+
+echo "------------------------------------------------------------------------"
+echo "Reno/DropTail"
+/course/cs4700f12/ns-allinone-2.35/ns-2.35/ns experiment3.tcl Reno DropTail
+./analyzeData
+
+echo "------------------------------------------------------------------------"
+echo "Sack/RED"
+/course/cs4700f12/ns-allinone-2.35/ns-2.35/ns experiment3.tcl Sack1 RED
+./analyzeData
+
+echo "------------------------------------------------------------------------"
+echo "Sack/DropTail"
+/course/cs4700f12/ns-allinone-2.35/ns-2.35/ns experiment3.tcl Sack1 DropTail
+./analyzeData
+
+

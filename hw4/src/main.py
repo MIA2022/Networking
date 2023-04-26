@@ -1,0 +1,30 @@
+#!/usr/bin/env python3
+import sys
+import server
+import client
+
+
+def main():
+    if len(sys.argv) < 3:
+        print("Usage:")
+        print("  Start server: ./ttt -s <port>")
+        print("  Start client: ./ttt -c <hostname> <port>")
+        sys.exit(1)
+
+    if sys.argv[1] == "-s":
+        port = int(sys.argv[2])
+        server.start_server(port)
+    elif sys.argv[1] == "-c":
+        if len(sys.argv) < 4:
+            print("Usage: ./ttt -c <hostname> <port>")
+            sys.exit(1)
+        hostname = sys.argv[2]
+        port = int(sys.argv[3])
+        client.start_client(hostname, port)
+    else:
+        print("Invalid argument. Use '-s' to start server or '-c' to start client")
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()

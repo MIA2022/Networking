@@ -1,5 +1,5 @@
 import pygame  # Imports the pygame library for creating a graphical interface
-from network import Network  # Imports the Network class from the network module.
+from network2 import Network  # Imports the Network class from the network module.
 from board import Board
 from button import Button
 
@@ -30,49 +30,37 @@ def redrawWindow(win, game, player):
 
     if not (game.connected()):
         draw_message("Waiting for Player...", 75, (64, 224, 208), (255, 127, 80))
-    # negotiate which side will be X player and which side will be Y player
-    elif game.get_first_player() == -1:
+    elif game.choices != ['agree', 'agree']:
+        clear_gameboard(gameboard)
         choiceExitBtn.draw(win)
         if player == 0:
             draw_message("You play first and be 'X' player!", 35, (255, 0, 0), None, None, 240)
         else:
             draw_message("You play second and be 'O' player!", 35, (255, 0, 0), None, None, 240)
-
-        if game.choices == [None, None]:
-            agreeBtn.draw(win)
-            disagreeBtn.draw(win)
-            draw_message("(Please make choice and wait for your opponent's choice!)", 20, (255, 0, 0), None, None, 300)
-        elif game.choices == [None, "agree"] or game.choices == [None, "disagree"]:
-            if player == 0:
-                agreeBtn.draw(win)
-                disagreeBtn.draw(win)
-                draw_message("(Please make choice!)", 20, (255, 0, 0), None, None, 300)
-            else:
-                draw_message("(Waiting for your opponent's choice!)", 20, (255, 0, 0), None, None, 300)
-        elif game.choices == ["agree", None] or game.choices == ["disagree", None]:
-            if player == 0:
-                draw_message("(Waiting for your opponent's choice!)", 20, (255, 0, 0), None, None, 300)
-            else:
-                agreeBtn.draw(win)
-                disagreeBtn.draw(win)
-                draw_message("(Please make choice!)", 20, (255, 0, 0), None, None, 300)
-
+        agreeBtn.draw(win)
+        disagreeBtn.draw(win)
+        draw_message("(Please make choice!  )", 20, (255, 0, 0), None, None, 300)
+        draw_message("(Game start only when click 'Agree'! Or you can click 'Exit' to exit game )", 20, (255, 0, 0),
+                     None, None, 350)
     else:
-        board.draw(win, game.get_board())
+        board.draw(win, gameboard)
         exitBtn.draw(win)
-        if player == game.get_first_player():
+        print("game.game_result", game.game_result)
+        if player == 0:
             draw_message("You are 'X' player!", 30, (255, 0, 0), None, None, 35)
         else:
             draw_message("You are 'O' player!", 30, (255, 0, 0), None, None, 35)
 
-        if game.game_over():
+        if game.game_result != -1:
+            print(game.game_result)
             replayBtn.draw(win)
-            if (game.winner() == 1 and player == 1) or (game.winner() == 0 and player == 0):
-                draw_message("You Won!", 90, (255, 0, 0),  None, 240)
-            elif game.is_full() and game.winner() == -1:
-                draw_message("Tie Game!", 90, (255, 0, 0),  None, 240)
-            else:
-                draw_message("You Lost...", 90, (255, 0, 0),  None, 240)
+            draw_message("'Replay' button doesn't work! Game replay automatically", 15, (255, 0, 0), None, None, 15)
+            if (game.game_result == 1 and player == 0) or (game.game_result == 2 and player == 1):
+                draw_message("You Won!", 90, (255, 0, 0), None, 240)
+            elif game.game_result == 0:
+                draw_message("Tie Game!", 90, (255, 0, 0), None, 240)
+            elif (game.game_result == 1 and player == 1) or (game.game_result == 2 and player == 0):
+                draw_message("You Lost...", 90, (255, 0, 0), None, 240)
 
     pygame.display.update()
 
@@ -83,26 +71,88 @@ exitBtn = Button("Exit", 275, 575, (255, 255, 255), (178, 34, 34))
 agreeBtn = Button("Agree", 50, 500, (34, 139, 34), (255, 182, 193))
 disagreeBtn = Button("Disagree", 250, 500, (65, 105, 225), (255, 215, 0))
 choiceExitBtn = Button("Exit", 450, 500, (231, 84, 128), (255, 255, 255))
+gameboard = [" " for _ in range(9)]
+
+
+def clear_gameboard(gameboard):
+    for i in range(len(gameboard)):
+        gameboard[i] = " "
+    return gameboard
+
+
+def check_valid_move(gameboard, position):
+    return gameboard[position] == " "
+
+
+def match_board(position):
+    if position == "7":
+        return 0
+    elif position == "8":
+        return 1
+    elif position == "9":
+        return 2
+    elif position == "4":
+        return 3
+    elif position == "5":
+        return 4
+    elif position == "6":
+        return 5
+    elif position == "1":
+        return 6
+    elif position == "2":
+        return 7
+    elif position == "3":
+        return 8
+    elif position == 0:
+        return "7"
+    elif position == 1:
+        return "8"
+    elif position == 2:
+        return "9"
+    elif position == 3:
+        return "4"
+    elif position == 4:
+        return "5"
+    elif position == 5:
+        return "6"
+    elif position == 6:
+        return "1"
+    elif position == 7:
+        return "2"
+    elif position == 8:
+        return "3"
 
 
 # handling game events, such as button clicks and receiving updates from the server.
 #  handle game logic and state changes.
-def main(host, port):
+def main():
     run = True
-    n = Network(host, port)
+    n = Network()
+    # print("IP Address", n.getIP)
     player = int(n.getP())
     print("You are player", player)
 
     while run:
+
         try:
             game = n.send("get")
-        except:
+        except Exception as e:
+            print(f"An exception occurred: {e}")
             run = False
             print("Couldn't get game")
             break
+        try:
 
-        if game.choices == ["disagree", "agree"] or game.choices == ["agree", "disagree"]:
-            n.send("resetChoices")
+            for element in game.move1:
+                print(match_board(element))
+                gameboard[match_board(element)] = "X"
+            for element in game.move2:
+                print(match_board(element))
+                gameboard[match_board(element)] = "O"
+
+        except Exception as e:
+            print(f"An exception occurred: {e}")
+            break
 
         if game.exit:
             win.fill((240, 240, 240))
@@ -113,38 +163,35 @@ def main(host, port):
             pygame.quit()
             break
 
-        if game.get_first_player() == player:
-            p = "X"
-        else:
-            p = "O"
-
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
                 pygame.quit()
-
             if event.type == pygame.MOUSEBUTTONDOWN:
                 pos = pygame.mouse.get_pos()
                 clicked_position = board.click(pos)
-                if (clicked_position in range(9)) and game.connected() and not game.game_over():
-                    if game.check_valid_move(clicked_position) and game.current_player == p:
-                        n.send(str(clicked_position))
-                elif agreeBtn.click(pos) and game.connected() and game.get_first_player() == -1:
+                if (clicked_position in range(9)) and game.connected() and game.choices == ['agree', 'agree']:
+                    if player == 1:
+                        if check_valid_move(gameboard, clicked_position) and game.p1Went[game.round] and not \
+                                game.p2Went[game.round]:
+                            n.send(match_board(clicked_position))
+                    elif player == 0:
+                        if check_valid_move(gameboard, clicked_position) and not game.p2Went[game.round] and not \
+                                game.p1Went[game.round]:
+                            n.send(match_board(clicked_position))
+                elif agreeBtn.click(pos) and game.connected() and game.choices != ['agree', 'agree']:
                     n.send("agree")
-                elif disagreeBtn.click(pos) and game.connected() and game.get_first_player() == -1:
+                elif disagreeBtn.click(pos) and game.connected() and game.choices != ['agree', 'agree']:
                     n.send("disagree")
-                elif choiceExitBtn.click(pos) and game.connected() and game.get_first_player() == -1:
+                elif choiceExitBtn.click(pos) and game.connected() and game.choices != ['agree', 'agree']:
                     n.send('exit')
-                elif exitBtn.click(pos) and game.connected() and game.get_first_player() != -1:
+                elif exitBtn.click(pos) and game.connected() and game.choices == ['agree', 'agree']:
                     n.send('exit')
-                elif replayBtn.click(pos) and game.connected() and game.get_first_player() != -1:
-                    n.send("reset")
-
         redrawWindow(win, game, player)
 
 
 # handling menu events, such as starting the game and quitting the application.
-def start_client(host, port):
+def start_client():
     def menu_screen():
         run = True
 
@@ -160,11 +207,11 @@ def start_client(host, port):
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     run = False
 
-        main(host, port)
+        main()
 
     # ensures that the menu screen is displayed again after the game ends.
     while True:
         menu_screen()
 
 
-start_client("45.79.193.175", 5131)
+start_client()

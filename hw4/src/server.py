@@ -6,11 +6,10 @@ from game import Game  # Import the Game class from the game module.
 
 
 def start_server(port):
+    server = socket.gethostname()  # Define server IP address and port number.
 
-    server = ""  # Define server IP address and port number.
-    ip_address = socket.gethostbyname(server)
-    print("hostname", server)
-    print("ip_address", ip_address)
+    print("IP address", socket.gethostbyname(server))
+
 
     # Create a socket object s.
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -99,6 +98,3 @@ def start_server(port):
         # Start a new thread for each incoming connection, passing the connection
         # object, player number, and game ID to the threaded_client function.
         start_new_thread(threaded_client, (conn, p, gameId))
-
-
-start_server(5131)
